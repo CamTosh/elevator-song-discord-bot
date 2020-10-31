@@ -1,0 +1,10 @@
+{
+  "name": "elevator-discord-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@discordjs/opus": "^0.3.3",
+    "discord.js": "^12.4.1",
+    "fs": "^0.0.1-security"
+  }
+}
