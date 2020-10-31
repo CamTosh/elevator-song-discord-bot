@@ -5,6 +5,8 @@
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
     "discord.js": "^12.4.1",
-    "fs": "^0.0.1-security"
+    "dotenv": "^8.2.0",
+    "fs": "^0.0.1-security",
+    "prexit": "^0.0.5"
   }
 }
