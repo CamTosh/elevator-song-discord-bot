@@ -29,7 +29,8 @@ const client = new Discord.Client();
 const config = {
     song: './song/bensound-theelevatorbossanova.ogg',
     codec: 'ogg/opus',
-    volume: 0.5, // 0.0 to 1
+    volume: 0.25, // 0.1 to 1
+    triggers: ['!elevator'], // command to trigger bot
     admin: ADMIN_USER_ID,
     minUsersToStartBot: 1, // minimum number of user to start song
     waitBeforeStart: 10, // seconds of silent to wait before start song
@@ -70,16 +71,15 @@ client.on('message', async (message) => {
     //channel.join().then(connection => { connection.on('debug', console.log);});
     
     const { author } = message;
-	if (message.content === '!elevator' && author.id === config.admin) {
+	if (config.triggers.includes(message.content) && author.id === config.admin) {
         log(`${author.username} invite bot to ${channel.name}`);
-        const connection = await channel.join();
+        manager.connection = await channel.join();
         
-        connection.play(new Silence(), { type: 'opus' });
+        manager.connection.play(new Silence(), { type: 'opus' });
         log('Connection is now fully established');
-        manager.connection =  connection;
 
-        connection.on('speaking', (user, speaking) => {
-            log(`[speak] ${user.username}, bitfield: ${speaking.bitfield}`);
+        manager.connection.on('speaking', (user, speaking) => {
+            log(`[speak] ${user.username}`);
             const isSpeaking = speaking.bitfield === 1;
 
             if (isSpeaking) {
@@ -92,8 +92,6 @@ client.on('message', async (message) => {
             }
 
             if (!isSpeaking) {
-                console.log('stop')
-
                 if(user.bot) return ; // don't talk with bot
                 if(manager.interval) return ;
 
@@ -109,7 +107,6 @@ client.on('message', async (message) => {
 
 
                 manager.interval = setInterval(() => {
-                    log(manager.diffWithNow());
                     if(manager.diffWithNow() >= config.waitBeforeStart) {
                         play();
                     }
@@ -127,23 +124,32 @@ const play = () => {
 
     log(`🎵 Play song (vol: ${config.volume})`);
     manager.playing = true;
-    manager.dispatcher = connection.play(fs.createReadStream(config.song), {
+    manager.dispatcher = manager.connection.play(fs.createReadStream(config.song), {
         type: config.codec,
         volume: config.volume
     });
 
-    manager.dispatcher.on('finish', () => log('🎵 Song finished'));
-    manager.dispatcher.on('error', console.error);
+    manager.dispatcher.on('finish', () => {
+        log('🎵 Song finished');
+        clearManager();
+    });
+    manager.dispatcher.on('error', (error) => {
+        console.error(error);
+        clearManager();
+    });
+};
+
+const clearManager = () => {
+    manager.dispatcher.destroy();
+    manager.dispatcher = null;
+    manager.playing = false;
+    manager.end = null;
 };
 
 const stop = () => {
     manager.end = new Date();
     log(`🎵 Stop song (Song has play ${manager.diffWithNow()} seconds)`);
-
-    manager.dispatcher.destroy();
-    manager.dispatcher = null;
-    manager.playing = false;
-    manager.end = null;
+    clearManager();
 };
 
 client.login(TOKEN);
