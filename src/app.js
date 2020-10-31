@@ -32,8 +32,8 @@ const config = {
     volume: 0.25, // 0.1 to 1
     triggers: ['!elevator'], // command to trigger bot
     admin: ADMIN_USER_ID,
-    minUsersToStartBot: 1, // minimum number of user to start song
-    waitBeforeStart: 10, // seconds of silent to wait before start song
+    minUsersToStartBot: 2, // minimum number of user to start song
+    waitBeforeStart: 30, // seconds of silent to wait before start song
 }
 const manager = {
     start: null,

@@ -1,5 +1,7 @@
 # Elevator song Discord bot 🎶🤖
 
+This bot play elevator song when conversation go silent for at least 30 seconds.
+
 [Idea came from uhmmm.app](https://uhmmm.app/?ref=CamTosh/elevator-song-discord-bot)
 
 ## Installation 🔧
