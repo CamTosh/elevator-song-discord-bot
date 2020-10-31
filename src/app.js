@@ -49,16 +49,13 @@ manager.diffWithNow = () => ((new Date()).getTime() - manager.end.getTime()) / 1
 const log = (content) => console.log(`[${new Date().toISOString()}] ${content}`);
 
 client.once('ready', () => log('Ready!'));
-//client.on('debug', console.log);
 
 client.on('message', async (message) => {
+    const { author } = message;
 
-    if (message.content === '!ping') {
-        message.channel.send('Pong.');
-    }
+    if (message.content === '!ping' && author.id === config.admin) message.channel.send('Pong');
 
     const { channel } = message.member.voice;
-    
     if (!channel.joinable) {
         log('Missing joinable permission');
         return message.reply(`I don't have permission to join that voice channel!`);
@@ -67,10 +64,7 @@ client.on('message', async (message) => {
         log('Missing speak permission');
         return message.reply(`I don't have permission to speak in that voice channel!`);
     }
-
-    //channel.join().then(connection => { connection.on('debug', console.log);});
     
-    const { author } = message;
 	if (config.triggers.includes(message.content) && author.id === config.admin) {
         log(`${author.username} invite bot to ${channel.name}`);
         manager.connection = await channel.join();
@@ -105,11 +99,8 @@ client.on('message', async (message) => {
                 manager.end = new Date();
                 log(`Silent start at ${manager.end.toISOString()}`);
 
-
                 manager.interval = setInterval(() => {
-                    if(manager.diffWithNow() >= config.waitBeforeStart) {
-                        play();
-                    }
+                    if(manager.diffWithNow() >= config.waitBeforeStart) play();
                 }, 1000);
             }
             
@@ -117,6 +108,13 @@ client.on('message', async (message) => {
     }
 
 });
+
+const clearManager = () => {
+    manager.dispatcher.destroy();
+    manager.dispatcher = null;
+    manager.playing = false;
+    manager.end = null;
+};
 
 const play = () => {
     clearInterval(manager.interval);
@@ -139,24 +137,17 @@ const play = () => {
     });
 };
 
-const clearManager = () => {
-    manager.dispatcher.destroy();
-    manager.dispatcher = null;
-    manager.playing = false;
-    manager.end = null;
-};
-
 const stop = () => {
     manager.end = new Date();
     log(`🎵 Stop song (Song has play ${manager.diffWithNow()} seconds)`);
     clearManager();
 };
 
-client.login(TOKEN);
-
 prexit(async () => {
     if(manager.playing) stop();
     if(manager.connection) {
         await manager.connection.disconnect();
     }
-})
+});
+
+client.login(TOKEN);
